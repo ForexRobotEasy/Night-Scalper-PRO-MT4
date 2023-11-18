@@ -1,0 +1,148 @@
+
+//+------------------------------------------------------------------+
+//|                                               Night Scalper PRO MT4 Expert Advisor |
+//|                                             Developer: Forex Robot Easy Team |
+//|                                             Developer's Site: forexroboteasy.com |
+//+------------------------------------------------------------------+
+
+//--- Input parameters
+extern int StopLoss = 10; // Stop Loss in pips
+extern int TakeProfit = 20; // Take Profit in pips
+extern int LotSize = 0.01; // Lot size for trading
+extern bool NewsFilter = true; // Enable news filter
+extern int DrawdownPercent = 10; // Maximum allowed drawdown percentage
+
+//--- Global variables
+double AccountBalance;
+double MaxDrawdown;
+
+//+------------------------------------------------------------------+
+//| Expert initialization function |
+//+------------------------------------------------------------------+
+int OnInit()
+{
+   // Get account balance
+   AccountBalance = AccountInfoDouble(ACCOUNT_BALANCE);
+   
+   // Calculate maximum drawdown
+   MaxDrawdown = AccountBalance * DrawdownPercent / 100;
+   
+   // Initialize news filter
+   if(NewsFilter)
+   {
+      // Implement news filter functionality
+   }
+   
+   return(INIT_SUCCEEDED);
+}
+
+//+------------------------------------------------------------------+
+//| Expert deinitialization function |
+//+------------------------------------------------------------------+
+void OnDeinit(const int reason)
+{
+   // Perform necessary cleanup tasks
+}
+
+//+------------------------------------------------------------------+
+//| Expert start function |
+//+------------------------------------------------------------------+
+void OnTick()
+{
+   // Check if news filter is enabled
+   if(NewsFilter)
+   {
+      // Check if news event is approaching
+      if(IsNewsEventApproaching())
+      {
+         // Disable trading until news event is over
+         return;
+      }
+   }
+   
+   // Perform trading operations
+   if(BuySignal())
+   {
+      // Open buy position
+      double stopLoss = Ask - StopLoss * Point;
+      double takeProfit = Ask + TakeProfit * Point;
+      OrderSend(Symbol(), OP_BUY, LotSize, Ask, 0, stopLoss, takeProfit);
+   }
+   else if(SellSignal())
+   {
+      // Open sell position
+      double stopLoss = Bid + StopLoss * Point;
+      double takeProfit = Bid - TakeProfit * Point;
+      OrderSend(Symbol(), OP_SELL, LotSize, Bid, 0, stopLoss, takeProfit);
+   }
+   
+   // Check for drawdown and close positions if necessary
+   if(CheckDrawdown())
+   {
+      CloseAllPositions();
+   }
+}
+
+//+------------------------------------------------------------------+
+//| Check if news event is approaching |
+//+------------------------------------------------------------------+
+bool IsNewsEventApproaching()
+{
+   // Implement news event check functionality
+   
+   return false; // Return true if news event is approaching, false otherwise
+}
+
+//+------------------------------------------------------------------+
+//| Check if there is a buy trading signal |
+//+------------------------------------------------------------------+
+bool BuySignal()
+{
+   // Implement buy signal check functionality
+   
+   return false; // Return true if buy signal is present, false otherwise
+}
+
+//+------------------------------------------------------------------+
+//| Check if there is a sell trading signal |
+//+------------------------------------------------------------------+
+bool SellSignal()
+{
+   // Implement sell signal check functionality
+   
+   return false; // Return true if sell signal is present, false otherwise
+}
+
+//+------------------------------------------------------------------+
+//| Check if the maximum drawdown has been reached |
+//+------------------------------------------------------------------+
+bool CheckDrawdown()
+{
+   // Calculate current drawdown
+   double currentDrawdown = AccountBalance - AccountInfoDouble(ACCOUNT_EQUITY);
+   
+   // Check if current drawdown exceeds maximum drawdown
+   if(currentDrawdown >= MaxDrawdown)
+   {
+      return true; // Maximum drawdown reached
+   }
+   
+   return false; // Maximum drawdown not reached
+}
+
+//+------------------------------------------------------------------+
+//| Close all open positions |
+//+------------------------------------------------------------------+
+void CloseAllPositions()
+{
+   // Close all open positions
+   int totalPositions = PositionsTotal();
+   
+   for(int i = totalPositions - 1; i >= 0; i--)
+   {
+      if(PositionSelectByTicket(PositionGetTicket(i)))
+      {
+         OrderClose(PositionGetTicket(i), PositionGetLots(), PositionGetBid(), 0, clrNONE);
+      }
+   }
+}
